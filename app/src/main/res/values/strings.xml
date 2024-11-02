@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">JetNoteApp</string>
+    <string name="title_1">A Movie Day</string>
+    <string name="title_2">Study Day</string>
+    <string name="title_3">Music Day</string>
+    <string name="title_4">Free Day</string>
+    <string name="note_1">Watching a movie with family</string>
+    <string name="note_2">Studying Kotlin today</string>
+    <string name="note_3">Listening to Rock music today</string>
+    <string name="note_4">Today i do nothing</string>
+    <string name="title">Title</string>
+    <string name="description">Add note</string>
+    <string name="save">Save</string>
+</resources>
