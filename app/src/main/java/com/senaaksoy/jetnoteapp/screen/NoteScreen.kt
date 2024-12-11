@@ -2,6 +2,7 @@
 
 package com.senaaksoy.jetnoteapp.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,13 +18,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -33,25 +31,16 @@ import com.senaaksoy.jetnoteapp.R
 import com.senaaksoy.jetnoteapp.components.EditTextField
 import com.senaaksoy.jetnoteapp.components.NoteButton
 import com.senaaksoy.jetnoteapp.components.NoteTopAppBar
+import com.senaaksoy.jetnoteapp.viewModel.NoteUiState
+import com.senaaksoy.jetnoteapp.viewModel.NoteViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
-
-
-data class Note(
-  val title: Any,
-  val description: Any
-)
 
 @Composable
-fun NoteScreen(){
-    val listA = listOf(
-        Note(R.string.title_1,  R.string.note_1),
-        Note( R.string.title_2,  R.string.note_2)
-    )
+fun NoteScreen(viewModel: NoteViewModel= viewModel()){
 
-    var titleInput by remember { mutableStateOf("") }
-    var descriptionInput by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
-    var notesList by remember { mutableStateOf(listA) }
 
     Column {
     NoteTopAppBar()
@@ -60,8 +49,8 @@ fun NoteScreen(){
         .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally)
     {
-        EditTextField(value =titleInput ,
-            onValueChange ={titleInput=it} ,
+        EditTextField(value =viewModel.titleInput ,
+            onValueChange ={viewModel.upDateTitleInput(it)} ,
             modifier = Modifier.padding(4.dp),
             label = R.string.title ,
             keyboardOptions = KeyboardOptions.Default.copy(
@@ -69,8 +58,8 @@ fun NoteScreen(){
                 imeAction = ImeAction.Next
             ),
             colors =TextFieldDefaults.colors(unfocusedContainerColor = Color.White))
-        EditTextField(value =descriptionInput ,
-            onValueChange ={descriptionInput=it} ,
+        EditTextField(value =viewModel.descriptionInput ,
+            onValueChange ={viewModel.upDateDescriptionInput(it)} ,
             modifier = Modifier.padding(4.dp),
             label = R.string.description ,
             keyboardOptions = KeyboardOptions.Default.copy(
@@ -78,50 +67,41 @@ fun NoteScreen(){
                 imeAction = ImeAction.Done
             ),
             colors =TextFieldDefaults.colors(unfocusedContainerColor = Color.White))
-     NoteButton(onClick = {
-         if(titleInput.isNotBlank() && descriptionInput.isNotBlank()){
-       notesList=notesList + Note(title = titleInput, description = descriptionInput)
-             titleInput = ""
-             descriptionInput = ""
-         }
-     },
-         text = R.string.save,
-         enabled = (titleInput.isNotBlank()&&descriptionInput.isNotBlank())
-     )
-        EditNoteCard(notesList)
 
-    }
-}
-}
+     NoteButton(
+         onClick = {
+        viewModel.addNote(NoteUiState(title = viewModel.titleInput, description = viewModel.descriptionInput))
+         keyboardController?.hide()
+                   },
+         text = R.string.save,
+         enabled = (viewModel.titleInput.isNotBlank()&&viewModel.descriptionInput.isNotBlank())
+     )
+        EditNoteCard(viewModel.notesList)
+    } } }
 
 @Composable
-fun EditNoteCard(notesList:List<Note>){
+fun EditNoteCard(notesList:List<NoteUiState>,viewModel: NoteViewModel= viewModel()){
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(notesList){ note->
-            Card(  modifier = Modifier
+        items(viewModel.notesList){ note->
+
+            Card(
+                modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(8.dp)
+                .clickable { viewModel.removeNote(note) },
                 colors =CardDefaults.cardColors( Color.LightGray))
             {
-                Column(modifier=Modifier.padding(8.dp)) {
-                    Text(text = if (note.title is Int) stringResource(note.title) else note.title as String,
+                Column(
+                    modifier=Modifier.padding(8.dp)) {
+                    Text(
+                        text = viewModel.getStringFromResource(value =note.title ),
                         fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text(text=if (note.description is Int) stringResource(note.description) else note.description as String)
+                    Text(
+                        text=viewModel.getStringFromResource(value = note.description))
 
                 }
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
 }
